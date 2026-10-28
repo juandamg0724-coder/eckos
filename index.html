@@ -160,6 +160,12 @@ nav button[aria-current="page"] svg{stroke:var(--hot2)}
 .basic{grid-template-columns:72px minmax(0,1fr) auto;gap:10px 12px;align-items:center}
 .basic .in{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr));gap:12px}
+.weekstrip{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:6px}
+.wk{background:var(--raise);padding:10px 4px;text-align:center;display:grid;gap:5px;align-content:start;border:0;color:var(--ink);font:inherit;cursor:pointer;min-height:66px}
+.wk b{font:800 12px var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.wk.has{box-shadow:inset 0 -3px 0 var(--hot2)}
+.wk .nm{font-size:11px;line-height:1.25;color:var(--ink)}
+.wk .plus{font:900 20px var(--display);color:var(--hot2);line-height:1}
 .strip div{display:grid;justify-items:center;gap:4px;text-align:center}
 .flag{font-size:.9em}
 @media (min-width:820px){nav button{display:flex;align-items:center;gap:10px}}
@@ -273,6 +279,10 @@ function figSvg(id){const[b,a,...q]=FIG[id],Hd=[b[0],b[1]],S0=[b[2],b[3]],P=[b[4
   return '<svg class="fig" viewBox="0 0 100 80" role="img" aria-label="Postura de referencia">'+defs+bg+back+far+farL+leg+body+head+arm+hl+front+'</svg>'}
 const fig=(id,cls)=>{const d=el('div',{class:cls||''});d.innerHTML=figSvg(id);if((cls==='thumb'||cls==='tt')&&EXI[id]){d.setAttribute('data-info',id);d.tabIndex=0;d.setAttribute('role','button');d.setAttribute('aria-label','Ver técnica: '+EXI[id].name)}return cls?d:d.firstChild};
 const figAnim=id=>el('div',{class:'anim'},fig(id,'figwrap'));
+function exIcon(id,cls){if(!EXI[id])return fig(id,cls);
+  const img=el('img',{class:'fig',src:'img/ex/'+id+'.png',alt:''});
+  if(cls==='thumb'||cls==='tt'){const d=el('div',{class:cls},img);d.setAttribute('data-info',id);d.tabIndex=0;d.setAttribute('role','button');d.setAttribute('aria-label','Ver técnica: '+EXI[id].name);return d}
+  return cls?el('div',{class:cls},img):img}
 const DAYS=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 const cfgOf=(o,id)=>({sets:3,reps:10,...((o.cfg||{})[id]||{})});
 const CUES={banca:['Escápulas juntas y hacia abajo, pecho arriba.','Baja la barra a la parte baja del pecho con los codos a unos 45°.','Pies firmes en el suelo y empuja en línea recta.'],incl_manc:['Banco a 30–45°.','Baja las mancuernas al pecho alto, sin rebotar.','Júntalas arriba sin chocarlas.'],press_manc:['Codos a 45°, no abiertos en cruz.','Baja hasta sentir el estiramiento en el pecho.','Sube controlando, sin bloquear de golpe.'],flexiones:['Cuerpo en tabla: glúteo y abdomen apretados.','Pecho casi al suelo en cada repetición.','Manos un poco más anchas que los hombros.'],
@@ -380,7 +390,7 @@ const sure=(label,fn,ask)=>el('button',{class:'btn ghost mini',type:'button',onc
 const SEX=[['m','Hombre'],['f','Mujer']];
 function picker(isSel,toggle,onchange){const st=S.pick,grid=el('div',{class:'pgrid'});
   const draw=()=>{const q=st.q.trim().toLowerCase(),list=EX.filter(e=>(!st.mus||e.mus===st.mus)&&(!q||e.name.toLowerCase().includes(q)));
-    grid.replaceChildren(...list.map(e=>el('div',{class:'pwrap'},el('button',{type:'button',class:'pcard','aria-pressed':String(!!isSel(e.id)),onclick:()=>{toggle(e.id);draw();onchange&&onchange()}},fig(e.id),el('span',{class:'pname',text:e.name}),el('span',{class:'pmus',text:MUS[e.mus]})),
+    grid.replaceChildren(...list.map(e=>el('div',{class:'pwrap'},el('button',{type:'button',class:'pcard','aria-pressed':String(!!isSel(e.id)),onclick:()=>{toggle(e.id);draw();onchange&&onchange()}},exIcon(e.id),el('span',{class:'pname',text:e.name}),el('span',{class:'pmus',text:MUS[e.mus]})),
       el('button',{type:'button',class:'pinfo','aria-label':'Técnica de '+e.name,onclick:()=>info(e.id)},'?'))));
     if(!list.length)grid.append(el('p',{class:'muted',text:'Ningún ejercicio coincide. Prueba con otro nombre.'}))};
   const chips=el('div',{class:'seg'},[['','Todos'],...Object.entries(MUS)].map(([k,l])=>el('button',{type:'button','aria-pressed':String(st.mus===k),onclick:ev=>{st.mus=k;for(const c of ev.currentTarget.parentNode.children)c.setAttribute('aria-pressed',String(c===ev.currentTarget));draw()}},l)));
@@ -390,25 +400,28 @@ function builder(e,acts){const list=el('div',{class:'blist'}),sum=el('p',{class:
     list.replaceChildren(...(e.ex.length?e.ex.map((id,i)=>{const c=cfgOf(e,id),set=(k,v)=>{e.cfg={...e.cfg,[id]:{...c,[k]:v}};draw()},nm=EXI[id].name;
       const step=(k,lab,min,max)=>el('div',{class:'step'},el('span',{class:'small muted',text:lab}),el('div',{class:'row',style:'gap:4px;flex-wrap:nowrap'},el('button',{type:'button','aria-label':'Menos '+lab.toLowerCase()+' en '+nm,onclick:()=>set(k,Math.max(min,c[k]-1))},'−'),el('b',{text:c[k]}),el('button',{type:'button','aria-label':'Más '+lab.toLowerCase()+' en '+nm,onclick:()=>set(k,Math.min(max,c[k]+1))},'+')));
       const mv=d=>{const j=i+d,a=[...e.ex];[a[i],a[j]]=[a[j],a[i]];e.ex=a;draw()};
-      return el('div',{class:'bitem'},el('span',{class:'num',text:String(i+1).padStart(2,'0')}),fig(id,'thumb'),el('div',{class:'grow',style:'display:grid;gap:6px'},el('h3',{text:nm}),el('div',{class:'row',style:'gap:14px'},step('sets','Series',1,10),step('reps','Reps',1,50))),
+      return el('div',{class:'bitem'},el('span',{class:'num',text:String(i+1).padStart(2,'0')}),exIcon(id,'thumb'),el('div',{class:'grow',style:'display:grid;gap:6px'},el('h3',{text:nm}),el('div',{class:'row',style:'gap:14px'},step('sets','Series',1,10),step('reps','Reps',1,50))),
         el('div',{class:'bact'},el('button',{type:'button','aria-label':'Subir '+nm,disabled:i===0,onclick:()=>mv(-1)},'↑'),el('button',{type:'button','aria-label':'Bajar '+nm,disabled:i===e.ex.length-1,onclick:()=>mv(1)},'↓'),el('button',{type:'button','aria-label':'Quitar '+nm,onclick:()=>{e.ex=e.ex.filter(x=>x!==id);draw();pk.redraw()}},'×')))}):
       [el('p',{class:'muted',text:'Tu rutina está vacía. Toca ejercicios en el catálogo para meterlos aquí; luego ajustas series, repeticiones y orden.'})]))};
   pk=picker(id=>e.ex.includes(id),id=>{e.ex=tog(e.ex,id)},draw);draw();
   if(!Array.isArray(e.days))e.days=[];
   const days=el('div',{class:'seg'},[[null,'Sin día'],...DAYS.map((d,i)=>[i,d.slice(0,3)])].map(([k,l])=>el('button',{type:'button','aria-pressed':String(k==null?!e.days.length:e.days.includes(k)),'aria-label':k==null?'Sin día fijo':DAYS[k],onclick:()=>{e.days=k==null?[]:tog(e.days,k);render()}},l)));
-  return[el('section',{class:'panel'},field('Nombre de la rutina',binp(e,'name',{maxlength:30,placeholder:'Ej.: Pecho y tríceps'})),el('div',{style:'display:grid;gap:6px'},el('span',{class:'small muted',text:'¿Qué días la haces? Puedes elegir varios.'}),days)),
+  return[el('section',{class:'panel'},field('Nombre de la rutina',binp(e,'name',{maxlength:30,placeholder:'Ej.: Pecho y tríceps'})),el('div',{style:'display:grid;gap:6px'},el('span',{class:'small muted',text:'¿Qué días la haces? Si eliges varios, repites este mismo entreno esos días. Para un entreno distinto cada día, crea una rutina por día.'}),days)),
     el('section',{class:'panel'},el('div',{class:'row between'},el('p',{class:'tag',text:'Tu rutina'}),sum),list),acts(),
     el('section',{class:'panel'},el('p',{class:'tag',text:'Catálogo · toca para añadir, ? para ver la técnica'}),pk),acts()]}
 function saveRoutine(e,list){const ds=[...(e.days||[])].sort((a,b)=>a-b),name=e.name.trim()||(ds.length===1?'Rutina del '+DAYS[ds[0]].toLowerCase():ds.length>1?'Rutina de '+ds.length+' días':'Rutina '+(list.length+1)),r={id:e.id||uid('r'),name,days:ds,ex:[...e.ex],cfg:Object.fromEntries(e.ex.map(id=>[id,cfgOf(e,id)]))};
   return list.some(x=>x.id===r.id)?list.map(x=>x.id===r.id?r:x):[...list,r]}
 function routineCard(r,actions){return el('section',{class:'panel'},el('div',{class:'row between'},el('h2',{text:r.name}),(r.days&&r.days.length)?el('div',{class:'row',style:'gap:4px'},r.days.map(d=>el('span',{class:'daychip',text:r.days.length>1?DAYS[d].slice(0,3):DAYS[d]}))):null),
-  el('div',{class:'thumbs'},r.ex.slice(0,5).map(id=>fig(id,'tt'))),
+  el('div',{class:'thumbs'},r.ex.slice(0,5).map(id=>exIcon(id,'tt'))),
   el('ul',{class:'plain small'},r.ex.filter(id=>EXI[id]).map(id=>{const c=cfgOf(r,id);return el('li',{text:EXI[id].name+' · '+c.sets+' × '+c.reps})})),el('div',{class:'row'},actions))}
 const tog=(arr,id)=>arr.includes(id)?arr.filter(x=>x!==id):[...arr,id];
+function weekStrip(list,onDay){return el('div',{class:'weekstrip'},DAYS.map((d,i)=>{const here=list.filter(r=>r.days&&r.days.includes(i));
+  return el('button',{type:'button',class:'wk'+(here.length?' has':''),onclick:()=>onDay(i,here)},el('b',{text:d.slice(0,3)}),
+    here.length?el('span',{class:'nm',text:here.map(r=>r.name).join(', ')}):el('span',{class:'plus','aria-hidden':'true'},'+'))}))}
 function marksForm(ids,store,cta,done,extra){
   return el('form',{class:'panel',style:'gap:0',onsubmit:ev=>{ev.preventDefault();done(ids.map(id=>{const m=store[id]||{};return +m.r>0&&(+m.w>0||EXI[id].bwf)?{ex:id,sets:[[Math.max(0,+m.w||0),Math.round(+m.r)]]}:null}).filter(Boolean))}},
     ids.map(id=>{const e=EXI[id],m=store[id]||{};const inp=(f,ph,lab)=>el('input',{id:'mk-'+f+'-'+id,type:'number',inputmode:'decimal',min:'0',step:f==='w'?'0.5':'1',placeholder:ph,'aria-label':lab+' en '+e.name,value:m[f]??'',oninput:ev=>{store[id]={...store[id],[f]:ev.target.value}}});
-      return el('div',{class:'mark'},fig(id),el('div',{style:'min-width:0'},el('h3',{text:e.name}),el('p',{class:'small muted',text:e.bwf?'Peso = lastre extra (opcional)':MUS[e.mus]})),inp('w','kg','Peso'),el('span',{class:'muted',text:'×'}),inp('r','reps','Repeticiones'))}),
+      return el('div',{class:'mark'},exIcon(id),el('div',{style:'min-width:0'},el('h3',{text:e.name}),el('p',{class:'small muted',text:e.bwf?'Peso = lastre extra (opcional)':MUS[e.mus]})),inp('w','kg','Peso'),el('span',{class:'muted',text:'×'}),inp('r','reps','Repeticiones'))}),
     el('div',{class:'row',style:'padding-top:14px'},extra,el('button',{class:'btn',type:'submit'},cta)))}
 function saveMarks(items){if(items.length)addWorkout({id:uid('m'),date:new Date().toISOString(),day:'Marcas',base:true,bw:S.profile.bw,items,vol:0})}
 function rest(sec){clearInterval(tmr);const end=Date.now()+sec*1000,box=$('#rest'),t=box.firstElementChild;box.hidden=false;
@@ -434,7 +447,8 @@ function wizard(){const st=reg.step,back=el('button',{class:'btn ghost',type:'bu
     if(reg.cur){const e=reg.cur;return[head(['Arma tu rutina','Aquí mandas tú: ponle nombre, elige el día, escoge los ejercicios y decide series y repeticiones. Puedes crear una por cada día de la semana.']),
       ...builder(e,()=>el('div',{class:'row'},reg.routines.length?el('button',{class:'btn ghost',type:'button',onclick:()=>{reg.cur=null;render();window.scrollTo(0,0)}},'Cancelar'):back,
         el('button',{class:'btn',type:'button',onclick:()=>{if(!e.ex.length){toast('Mete al menos un ejercicio en la rutina.');return}reg.routines=saveRoutine(e,reg.routines);reg.cur=null;render();window.scrollTo(0,0)}},'Guardar rutina')))]}
-    return[head(['Tu semana','Estas son tus rutinas. Crea otra para cada día que entrenes o continúa: siempre podrás cambiarlas después.']),
+    return[head(['Tu semana','Toca un día para ponerle sus ejercicios. Cada día puede tener un entreno distinto: no tienes que repetir lo mismo.']),
+      el('section',{class:'panel'},weekStrip(reg.routines,(day,here)=>{reg.cur=here[0]?JSON.parse(JSON.stringify(here[0])):{id:uid('r'),name:'',days:[day],ex:[],cfg:{}};S.pick={mus:'',q:''};render();window.scrollTo(0,0)})),
       el('div',{class:'cards'},reg.routines.map(r=>routineCard(r,[el('button',{class:'btn ghost mini',type:'button',onclick:()=>{reg.cur=JSON.parse(JSON.stringify(r));S.pick={mus:'',q:''};render();window.scrollTo(0,0)}},'Editar'),sure('Borrar',()=>{reg.routines=reg.routines.filter(x=>x.id!==r.id);render()})]))),
       el('div',{class:'row'},back,el('button',{class:'btn ghost',type:'button',onclick:()=>{reg.cur={id:uid('r'),name:'',days:[],ex:[],cfg:{}};S.pick={mus:'',q:''};render();window.scrollTo(0,0)}},'Crear otra rutina'),el('button',{class:'btn',type:'button',onclick:()=>{if(!reg.routines.length){toast('Crea al menos una rutina.');return}next()}},'Continuar'))]}
   if(st===3)return[head(['Tu cuerpo','Tu rango compara lo que levantas con lo que pesas: no es lo mismo mover 80 kg pesando 60 que pesando 90.']),el('section',{class:'panel'},el('form',{class:'form',onsubmit:ev=>{ev.preventDefault();if(!(+reg.bw>=30&&+reg.bw<=250)){toast('Escribe tu peso en kilos, entre 30 y 250.');return}if(!(+reg.height>=120&&+reg.height<=230)){toast('Escribe tu estatura en centímetros, entre 120 y 230.');return}next()}},
@@ -459,7 +473,7 @@ function vInicio(){const p=S.profile,goalN=Math.min(7,Math.max(1,+p.goal||3)),wk
   const todays=p.routines.filter(r=>r.days&&r.days.includes(td)),done=sessions().some(w=>localDay(w.date)===today()),dn=Math.floor((Date.now()-new Date(new Date().getFullYear(),0,1))/864e5);
   const libre=()=>startSession({id:null,name:'Entreno libre',ex:[]});
   const hoy=S.session?el('section',{class:'panel card'},el('p',{class:'tag',text:'Entreno en curso'}),el('h2',{text:S.session.name}),el('div',{class:'row'},el('button',{class:'btn',type:'button',onclick:()=>go('entrenar')},'Seguir entrenando'))):
-    todays.length?el('section',{class:'panel card'},el('p',{class:'tag',text:'Hoy, '+DAYS[td].toLowerCase()+(done?' · ya entrenaste':' · te toca')}),todays.map(r=>el('div',{style:'display:grid;gap:10px'},el('h2',{text:r.name}),el('div',{class:'thumbs'},r.ex.slice(0,5).map(id=>fig(id,'tt'))),
+    todays.length?el('section',{class:'panel card'},el('p',{class:'tag',text:'Hoy, '+DAYS[td].toLowerCase()+(done?' · ya entrenaste':' · te toca')}),todays.map(r=>el('div',{style:'display:grid;gap:10px'},el('h2',{text:r.name}),el('div',{class:'thumbs'},r.ex.slice(0,5).map(id=>exIcon(id,'tt'))),
       el('p',{class:'small muted',text:r.ex.length+' ejercicios · '+r.ex.reduce((a,id)=>a+cfgOf(r,id).sets,0)+' series'}),el('div',{class:'row'},el('button',{class:'btn',type:'button',onclick:()=>startSession(r)},done?'Entrenar otra vez':'Empezar'))))):
     el('section',{class:'panel card'},el('p',{class:'tag',text:'Hoy, '+DAYS[td].toLowerCase()}),el('h2',{text:done?'Trabajo hecho. Ahora a recuperar.':'Nada asignado para hoy'}),el('p',{class:'small muted',text:'Ponle día a tus rutinas para que aparezcan aquí, o entrena libre y arma la sesión sobre la marcha.'}),
       el('div',{class:'row'},el('button',{class:'btn',type:'button',onclick:libre},'Entreno libre'),el('button',{class:'btn ghost',type:'button',onclick:()=>go('entrenar')},'Mis rutinas')));
@@ -480,6 +494,8 @@ function vEntrenar(){const p=S.profile;
   if(S.edit)return vEditor();
   if(S.session)return vSession();
   return[el('h1',{text:'Entrenar'}),el('p',{class:'muted',text:'Aquí mandas tú: cada rutina la armas a tu medida. Toca un dibujo para ver la técnica.'}),
+    el('section',{class:'panel'},el('p',{class:'tag',text:'Tu semana'}),el('p',{class:'small muted',text:'Toca un día: si está vacío, le metes su propio entreno. No tiene que ser igual todos los días.'}),
+      weekStrip(p.routines,(day,here)=>{S.edit=here[0]?{id:here[0].id,name:here[0].name,days:here[0].days?[...here[0].days]:[],ex:[...here[0].ex],cfg:JSON.parse(JSON.stringify(here[0].cfg||{}))}:{id:null,name:'',days:[day],ex:[],cfg:{}};S.pick={mus:'',q:''};render();window.scrollTo(0,0)})),
     el('div',{class:'cards'},p.routines.map(r=>routineCard(r,[el('button',{class:'btn mini',type:'button',onclick:()=>startSession(r)},'Empezar'),
       el('button',{class:'btn ghost mini',type:'button',onclick:()=>{S.edit={id:r.id,name:r.name,days:r.days?[...r.days]:[],ex:[...r.ex],cfg:JSON.parse(JSON.stringify(r.cfg||{}))};S.pick={mus:'',q:''};render();window.scrollTo(0,0)}},'Editar')]))),
     el('div',{class:'row'},el('button',{class:'btn',type:'button',onclick:()=>{newRoutine();render();window.scrollTo(0,0)}},'Nueva rutina'),el('button',{class:'btn ghost',type:'button',onclick:()=>startSession({id:null,name:'Entreno libre',ex:[]})},'Entreno libre'))]}
@@ -497,7 +513,7 @@ function vSession(){const s=S.session,b=bests();
     const rows=[];for(let i=0;i<ns;i++){const k=id+'-'+i,d=draft[k]||{},pl=last&&last[Math.min(i,last.length-1)];
       const inp=(f,ph,lab)=>el('input',{id:'s-'+f+'-'+k,type:'number',inputmode:'decimal',step:f==='w'?'0.5':'1',min:'0',placeholder:ph,'aria-label':lab,value:d[f]??'',oninput:ev=>{draft[k]={...draft[k],[f]:ev.target.value};saveDraft()}});
       rows.push(el('div',{class:'set'},el('span',{text:i+1}),inp('w',pl?n1(pl[0]):(e.bwf?'lastre kg':'kg'),'Peso en kilos, serie '+(i+1)),el('span',{text:'×'}),inp('r',pl?String(pl[1]):String(c.reps),'Repeticiones, serie '+(i+1))))}
-    return el('section',{class:'panel'},el('div',{class:'row',style:'flex-wrap:nowrap;align-items:flex-start'},fig(id,'thumb'),el('div',{class:'grow',style:'display:grid;gap:4px'},el('h3',{text:e.name}),el('p',{class:'small muted',text:MUS[e.mus]+' · objetivo '+c.sets+' × '+c.reps+' · '+rk(exScore(id,b)).name}),hint),badge(exScore(id,b),'sm')),
+    return el('section',{class:'panel'},el('div',{class:'row',style:'flex-wrap:nowrap;align-items:flex-start'},exIcon(id,'thumb'),el('div',{class:'grow',style:'display:grid;gap:4px'},el('h3',{text:e.name}),el('p',{class:'small muted',text:MUS[e.mus]+' · objetivo '+c.sets+' × '+c.reps+' · '+rk(exScore(id,b)).name}),hint),badge(exScore(id,b),'sm')),
       el('div',{class:'sets'},rows),el('div',{class:'row'},el('button',{class:'btn ghost mini',type:'button',onclick:()=>{s.sets[id]=ns+1;saveDraft();render()}},'+ Serie'),el('button',{class:'btn ghost mini',type:'button',onclick:()=>rest(90)},'Descanso 1:30'),
         el('button',{class:'btn ghost mini',type:'button',onclick:()=>{s.ex=s.ex.filter(x=>x!==id);saveDraft();render()}},'Quitar')))});
   return[el('div',{class:'row between'},el('div',{style:'display:grid;gap:4px'},el('p',{class:'tag',id:'elapsed',text:'En el hierro · 0:00'}),el('h1',{text:s.name})),sure('Cancelar entreno',()=>{S.session=null;draft={};saveDraft();render()},'¿Descartar?')),
@@ -533,7 +549,7 @@ function vRangos(){const s=S.sub.rangos,nav=seg('rangos',[['mapa','Mapa'],['basi
     return[el('h1',{text:'Calculadora de rango'}),nav,el('section',{class:'panel'},el('div',{class:'form'},field('Ejercicio',exS),field('Peso (kg)',el('input',{id:'calc-w',type:'number',inputmode:'decimal',step:'0.5',min:'0',value:c.w,oninput:ev=>{c.w=ev.target.value;upd()}})),field('Repeticiones',el('input',{id:'calc-r',type:'number',inputmode:'numeric',min:'0',value:c.r,oninput:ev=>{c.r=ev.target.value;upd()}}))),out)]}
   if(s==='ejercicios'){const list=EX.filter(e=>!S.rkMus||e.mus===S.rkMus).sort((x,y)=>exScore(y.id,b)-exScore(x.id,b));
     return[el('h1',{text:'Rango por ejercicio'}),nav,el('div',{class:'seg'},[['','Todos'],...Object.entries(MUS)].map(([k,l])=>el('button',{type:'button','aria-pressed':String(S.rkMus===k),onclick:()=>{S.rkMus=k;render()}},l))),
-      el('section',{class:'panel list',style:'gap:0'},list.map(e=>{const sc=exScore(e.id,b);return el('div',{},el('div',{class:'row',style:'flex-wrap:nowrap'},fig(e.id,'thumb'),el('div',{class:'grow',style:'display:grid;gap:4px'},el('h3',{text:e.name}),
+      el('section',{class:'panel list',style:'gap:0'},list.map(e=>{const sc=exScore(e.id,b);return el('div',{},el('div',{class:'row',style:'flex-wrap:nowrap'},exIcon(e.id,'thumb'),el('div',{class:'grow',style:'display:grid;gap:4px'},el('h3',{text:e.name}),
         el('p',{class:'small muted',text:b[e.id]?rk(sc).name+' · 1RM estimado '+n1(b[e.id])+' kg':MUS[e.mus]+' · sin marca'}),el('div',{class:'bar'},el('i',{style:'width:'+Math.round(sc)+'%'}))),badge(sc)))}))]}
   const sc=scores(),has=Object.keys(b).length>0,weak=Object.keys(MUS).sort((x,y)=>sc[x].s-sc[y].s)[0];
   return[el('h1',{text:'Rangos'}),nav,rankPanel(),
@@ -609,7 +625,7 @@ const bFmt=(b,v)=>b[2]==='seg'?Math.floor(v/60)+':'+String(v%60).padStart(2,'0')
 function vBasicos(nav){const p=S.profile;
   return[el('h1',{text:'Básicos'}),nav,el('p',{class:'muted',text:'Tu máximo de un tirón, con tu propio peso y sin trampa. Va aparte de tus rutinas: es tu rango de calle.'}),
     ...BASICS.map(b=>{const[id,name,unit]=b,best=bBest(id),sc=bScore(id),inp=el('input',{id:'bs-'+id,type:'number',inputmode:'numeric',min:'1',placeholder:unit==='seg'?'segundos':'repeticiones','aria-label':name+': '+(unit==='seg'?'segundos':'repeticiones'),style:'width:150px'});
-      return el('section',{class:'panel basic'},fig(id),el('div',{style:'min-width:0;display:grid;gap:4px'},el('h3',{text:name}),el('p',{class:'small muted',text:best?rk(sc).name+' · récord '+bFmt(b,best):'Sin marca'}),el('div',{class:'bar'},el('i',{style:'width:'+Math.round(sc)+'%'}))),badge(sc),
+      return el('section',{class:'panel basic'},exIcon(id),el('div',{style:'min-width:0;display:grid;gap:4px'},el('h3',{text:name}),el('p',{class:'small muted',text:best?rk(sc).name+' · récord '+bFmt(b,best):'Sin marca'}),el('div',{class:'bar'},el('i',{style:'width:'+Math.round(sc)+'%'}))),badge(sc),
         el('div',{class:'in'},inp,el('button',{class:'btn mini',type:'button',onclick:()=>{const v=Math.round(+inp.value);if(!(v>0&&v<=(unit==='seg'?3600:500))){toast(unit==='seg'?'Escribe cuántos segundos aguantas.':'Escribe cuántas repeticiones seguidas haces.');return}
           const r0=rk(sc).i;p.basics={...(p.basics||{}),[id]:[...(((p.basics||{})[id])||[]).slice(-19),{d:today(),v}]};saveProfile();publishBoard();const r1=rk(bScore(id));
           toast(r1.i>r0?'¡Subes a '+r1.name+' en '+name.toLowerCase()+'!':v>best?'Nuevo récord guardado.':'Marca guardada. Tu récord sigue siendo '+bFmt(b,best)+'.');render()}},'Guardar')))})]}
