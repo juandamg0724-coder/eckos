@@ -1,0 +1,38 @@
+ECKOS - app de gimnasio
+
+COMO ABRIRLA (rapido, sin instalar nada)
+Abre index.html con doble clic en cualquier navegador (Chrome, Edge, Safari).
+En el celular: pasa la carpeta al telefono y abre index.html con el navegador.
+
+COMO INSTALARLA COMO APP (para que quede como un icono mas, sin tienda de apps)
+Abierta asi (doble clic en index.html) el navegador no ofrece "Instalar", porque
+eso solo funciona si la app se sirve por http/https, no abriendo el archivo
+directo. Para tener el boton de instalar:
+1. Sube esta carpeta a un hosting gratis (GitHub Pages, Netlify, Vercel...) o
+   corre un servidor local (por ejemplo "npx serve" dentro de la carpeta).
+2. Abre esa direccion en Chrome (Android) o Safari (iPhone).
+3. Android/Chrome: menu > "Instalar app" o "Añadir a pantalla de inicio".
+   iPhone/Safari: boton compartir > "Añadir a pantalla de inicio".
+Queda como una app normal, con su icono, pantalla completa y funciona sin
+internet despues de abrirla una vez (gracias a manifest.json y sw.js).
+
+QUE FUNCIONA EN ESTA COPIA
+Todo menos la nube: rutinas, registro de entrenos, rangos, basicos, progreso,
+fotos, perfil y logros. Las rutinas ahora aceptan varios dias por rutina.
+Los datos se guardan solo en el navegador del dispositivo donde la abras.
+Si borras los datos del navegador, se pierden.
+
+QUE NO FUNCIONA FUERA DE CLAUDE
+La sincronizacion entre dispositivos, la liga y los duelos. Esas partes usan
+la base de datos del enlace publicado en Claude. Para tenerlas en una version
+propia hay que conectar un backend con cuentas de usuario.
+
+IMAGENES
+img/character.png y img/ranks.png son ilustraciones generadas con Meta AI
+(estilo low-poly) para la mascota y las insignias de rango. img/icon-*.png
+son los iconos de la app (para el manifest y la pantalla de inicio),
+recortados del mismo personaje.
+
+NOTA
+Las tipografias se cargan de Google Fonts: sin internet la app funciona igual,
+pero con una letra de respaldo.
